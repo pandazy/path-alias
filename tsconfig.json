@@ -1,0 +1,35 @@
+{
+  "ts-node": {
+    "compilerOptions": {
+      "module": "commonjs"
+    }
+  },
+  "compilerOptions": {
+    /* Basic Options */
+    "target": "es6",
+    "module": "commonjs",
+    "importHelpers": true,
+    "lib": ["dom", "es2021"],
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "sourceMap": true,
+    /* Strict Type-Checking Options */
+    "strict": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    /* Additional Checks */
+    "noUnusedParameters": true,
+    "allowSyntheticDefaultImports": true,
+    "noUnusedLocals": true,
+    "noFallthroughCasesInSwitch": true,
+    /* Module Resolution Options */
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "types": ["jest", "node"],
+    "outDir": "dist",
+    "baseUrl": "."
+  },
+  "include": ["./src/**/*", "./bin/**/*.ts"],
+  "exclude": ["./node_modules/**/*", "./dist/**/*", "./bin/**/*.js"]
+}
