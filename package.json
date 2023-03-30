@@ -3,7 +3,6 @@
   "description": "utility library for TypeScript path alias management",
   "version": "0.2.0",
   "main": "index.js",
-  "bin": "index.js",
   "scripts": {
     "test": "jest --coverage",
     "lint": "prettier --write ./*.json src/*.ts src/**/*.ts && eslint 'src/**' --ext .ts,.tsx --fix",
