@@ -11,7 +11,6 @@ export default {
   },
   testRegex: '^.+\\.spec\\.tsx?$',
   moduleFileExtensions: [
-    ...(defaults.moduleFileExtensions ?? []),
     'ts',
     'tsx',
     'js',
