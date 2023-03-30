@@ -39,8 +39,8 @@ describe('path-mapping', () => {
     const alias = getBabelAlias();
     expect(readFileSync).toHaveBeenCalledTimes(1);
     expect(alias).toEqual({
-      '@': 'src',
-      '@components': 'src/components',
+      '@': './src',
+      '@components': './src/components',
     });
     expect(resolve).toHaveBeenCalledWith('~/walter/white', 'tsconfig.json');
   });
@@ -51,8 +51,8 @@ describe('path-mapping', () => {
     const alias = getBabelAlias('tsconfig-mole.json');
     expect(readFileSync).toHaveBeenCalledTimes(1);
     expect(alias).toEqual({
-      '@': 'src',
-      '@components': 'src/components',
+      '@': './src',
+      '@components': './src/components',
     });
     expect(resolve).toHaveBeenCalledWith(
       '~/walter/white',

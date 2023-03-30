@@ -26,7 +26,7 @@ const cutTailingSlashStar = (path: string): string =>
   path.replace(/\/+\*$/, '');
 const trimPathSlashes = (filePath: string): string =>
   filePath.replace(/^\.\/+|\/+$/g, '');
-const babelPath = (path: string): string =>
+const relativePath = (path: string): string =>
   trimPathSlashes(cutTailingSlashStar(path));
 
 export function getBabelAlias(
@@ -36,7 +36,7 @@ export function getBabelAlias(
   return Object.entries(tsPaths).reduce(
     (acc, [alias, paths]) => ({
       ...acc,
-      [babelPath(alias)]: babelPath(paths[0]),
+      [relativePath(alias)]: `./${relativePath(paths[0])}`,
     }),
     {}
   );
@@ -48,7 +48,9 @@ export function getJestMapper(
   return Object.entries(readTsconfigPaths(tsconfigFile)).reduce(
     (acc, [alias, paths]) => ({
       ...acc,
-      [`^${babelPath(alias)}/(.*)$`]: `<rootDir>/${babelPath(paths[0])}/$1`,
+      [`^${relativePath(alias)}/(.*)$`]: `<rootDir>/${relativePath(
+        paths[0]
+      )}/$1`,
     }),
     {}
   );
@@ -60,7 +62,7 @@ export function getResolvedPaths(
   return Object.entries(readTsconfigPaths(tsconfigFile)).reduce(
     (acc, [alias, paths]) => ({
       ...acc,
-      [`${babelPath(alias)}`]: resolve(cwd(), babelPath(paths[0])),
+      [`${relativePath(alias)}`]: resolve(cwd(), relativePath(paths[0])),
     }),
     {}
   );
