@@ -1,50 +1,66 @@
 import { existsSync, readFileSync } from 'fs';
 import { resolve } from 'path';
 import { cwd } from 'process';
-import { MolePaths } from './types';
 
-function readUserMapping(): MolePaths {
-  const userFolder = resolve(cwd(), 'mole-paths.json');
-  if (!existsSync(userFolder)) {
+type Tsconfig = {
+  compilerOptions: {
+    paths?: Record<string, string[]>;
+  };
+};
+
+const DefaultTsconfigFile = 'tsconfig.json';
+
+const readTsconfigPaths = (tsconfigFile: string): Record<string, string[]> => {
+  const tsconfigPath = resolve(cwd(), tsconfigFile);
+  if (!existsSync(tsconfigPath)) {
     return {};
   }
-  const molePathsContent = readFileSync(userFolder, 'utf8');
-  return molePathsContent ? (JSON.parse(molePathsContent) as MolePaths) : {};
-}
+  const tsconfigContent = readFileSync(tsconfigPath, 'utf8');
+  if (!tsconfigContent) {
+    return {};
+  }
+  return (JSON.parse(tsconfigContent) as Tsconfig).compilerOptions?.paths ?? {};
+};
 
-export function getBabelAlias(): MolePaths {
-  return readUserMapping();
-}
+const cutTailingSlashStar = (path: string): string =>
+  path.replace(/\/+\*$/, '');
+const trimPathSlashes = (filePath: string): string =>
+  filePath.replace(/^\.\/+|\/+$/g, '');
+const babelPath = (path: string): string =>
+  trimPathSlashes(cutTailingSlashStar(path));
 
-function trimPathSlashes(filePath: string): string {
-  return filePath.replace(/^\.\/|\/$/g, '');
-}
-
-export function getJestMapper(): MolePaths {
-  return Object.entries(readUserMapping()).reduce(
-    (acc, [alias, path]) => ({
+export function getBabelAlias(
+  tsconfigFile = DefaultTsconfigFile
+): Record<string, string> {
+  const tsPaths = readTsconfigPaths(tsconfigFile);
+  return Object.entries(tsPaths).reduce(
+    (acc, [alias, paths]) => ({
       ...acc,
-      [`^${alias}/(.*)$`]: `<rootDir>/${trimPathSlashes(path)}/$1`,
-    }),
-    {} as MolePaths
-  );
-}
-
-export function getTsConfigPaths(): Record<string, string[]> {
-  return Object.entries(readUserMapping()).reduce(
-    (acc, [alias, filePath]) => ({
-      ...acc,
-      [`${alias}/*`]: [`${trimPathSlashes(filePath)}/*`],
+      [babelPath(alias)]: babelPath(paths[0]),
     }),
     {}
   );
 }
 
-export function getResolvedPaths(): Record<string, string> {
-  return Object.entries(readUserMapping()).reduce(
-    (acc, [alias, filePath]) => ({
+export function getJestMapper(
+  tsconfigFile = DefaultTsconfigFile
+): Record<string, string> {
+  return Object.entries(readTsconfigPaths(tsconfigFile)).reduce(
+    (acc, [alias, paths]) => ({
       ...acc,
-      [`${alias}`]: resolve(cwd(), trimPathSlashes(filePath)),
+      [`^${babelPath(alias)}/(.*)$`]: `<rootDir>/${babelPath(paths[0])}/$1`,
+    }),
+    {}
+  );
+}
+
+export function getResolvedPaths(
+  tsconfigFile = DefaultTsconfigFile
+): Record<string, string> {
+  return Object.entries(readTsconfigPaths(tsconfigFile)).reduce(
+    (acc, [alias, paths]) => ({
+      ...acc,
+      [`${babelPath(alias)}`]: resolve(cwd(), babelPath(paths[0])),
     }),
     {}
   );

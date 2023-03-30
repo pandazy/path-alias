@@ -1,11 +1,6 @@
 import { existsSync, readFileSync } from 'fs';
 import { resolve } from 'path';
-import {
-  getBabelAlias,
-  getJestMapper,
-  getResolvedPaths,
-  getTsConfigPaths,
-} from './path-mapping';
+import { getBabelAlias, getJestMapper, getResolvedPaths } from './path-mapping';
 
 jest.mock('fs', () => ({
   readFileSync: jest.fn(),
@@ -21,9 +16,13 @@ jest.mock('path', () => ({
 }));
 
 describe('path-mapping', () => {
-  const expectedDefinition = {
-    '@': './src',
-    '@components': './src/components',
+  const mockTsconfig = {
+    compilerOptions: {
+      paths: {
+        '@/*': ['src/*'],
+        '@components/*': ['src/components/*'],
+      },
+    },
   };
   const mockRead = (definition: Record<string, any> | undefined): void => {
     (readFileSync as jest.Mock).mockReturnValue(
@@ -36,11 +35,29 @@ describe('path-mapping', () => {
 
   it('should getBabelAlias', () => {
     (existsSync as jest.Mock).mockReturnValueOnce(true);
-    mockRead(expectedDefinition);
+    mockRead(mockTsconfig);
     const alias = getBabelAlias();
     expect(readFileSync).toHaveBeenCalledTimes(1);
-    expect(alias).toEqual(expectedDefinition);
-    expect(resolve).toHaveBeenCalledWith('~/walter/white', 'mole-paths.json');
+    expect(alias).toEqual({
+      '@': 'src',
+      '@components': 'src/components',
+    });
+    expect(resolve).toHaveBeenCalledWith('~/walter/white', 'tsconfig.json');
+  });
+
+  it('should getBabelAlias from a specified file', () => {
+    (existsSync as jest.Mock).mockReturnValueOnce(true);
+    mockRead(mockTsconfig);
+    const alias = getBabelAlias('tsconfig-mole.json');
+    expect(readFileSync).toHaveBeenCalledTimes(1);
+    expect(alias).toEqual({
+      '@': 'src',
+      '@components': 'src/components',
+    });
+    expect(resolve).toHaveBeenCalledWith(
+      '~/walter/white',
+      'tsconfig-mole.json'
+    );
   });
 
   it('should getBabelAlias with empty file', () => {
@@ -50,8 +67,29 @@ describe('path-mapping', () => {
     expect(alias).toEqual({});
   });
 
+  it('should getBabelAlias from empty-paths tsconfig', () => {
+    (existsSync as jest.Mock).mockReturnValueOnce(true);
+    mockRead({ compilerOptions: {} });
+    const alias = getBabelAlias();
+    expect(alias).toEqual({});
+  });
+
+  it('should getBabelAlias from empty tsconfig', () => {
+    (existsSync as jest.Mock).mockReturnValueOnce(true);
+    mockRead({});
+    const alias = getBabelAlias();
+    expect(alias).toEqual({});
+  });
+
+  it('should getBabelAlias if tsconfig is not found', () => {
+    (existsSync as jest.Mock).mockReturnValueOnce(false);
+    mockRead(mockTsconfig);
+    const alias = getBabelAlias();
+    expect(alias).toEqual({});
+  });
+
   it('should getJestMapper', () => {
-    mockRead(expectedDefinition);
+    mockRead(mockTsconfig);
     (existsSync as jest.Mock).mockReturnValueOnce(true);
     const alias = getJestMapper();
     expect(alias).toEqual({
@@ -61,33 +99,16 @@ describe('path-mapping', () => {
   });
 
   it('should getJestMapper if file does not exist', () => {
-    mockRead(expectedDefinition);
+    mockRead(mockTsconfig);
     (existsSync as jest.Mock).mockReturnValueOnce(false);
     const alias = getJestMapper();
     expect(alias).toEqual({});
     expect(readFileSync).not.toBeCalled();
   });
 
-  it('should getTsConfigPaths', () => {
-    (existsSync as jest.Mock).mockReturnValueOnce(true);
-    mockRead(expectedDefinition);
-    const alias = getTsConfigPaths();
-    expect(alias).toEqual({
-      '@/*': ['src/*'],
-      '@components/*': ['src/components/*'],
-    });
-  });
-
-  it('should getTsConfigPaths with empty file', () => {
-    (existsSync as jest.Mock).mockReturnValueOnce(true);
-    mockRead(undefined);
-    const alias = getTsConfigPaths();
-    expect(alias).toEqual({});
-  });
-
   it('should getResolvedPaths', () => {
     (existsSync as jest.Mock).mockReturnValueOnce(true);
-    mockRead(expectedDefinition);
+    mockRead(mockTsconfig);
     const alias = getResolvedPaths();
     expect(alias).toEqual({
       '@': `~/walter/white/src`,
