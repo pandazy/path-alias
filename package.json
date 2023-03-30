@@ -1,7 +1,7 @@
 {
   "name": "@pandazy/path-alias",
   "description": "utility library for TypeScript path alias management",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "main": "index.js",
   "scripts": {
     "test": "jest --coverage",
