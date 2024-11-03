@@ -1,14 +1,14 @@
 {
   "name": "@pandazy/path-alias",
   "description": "utility library for TypeScript path alias management",
-  "version": "0.2.3",
+  "version": "0.3.0",
   "type": "module",
   "main": "index.js",
   "scripts": {
     "test": "jest --coverage",
     "build:clean": "rm -rf dist",
     "build": "yarn tsc --build tsconfig-build.json &&  babel src --out-dir dist --extensions \".ts,.tsx\"",
-    "release": "yarn test && yarn build && yarn publish"
+    "release": "yarn test && yarn build && npm publish"
   },
   "repository": {
     "type": "git",
